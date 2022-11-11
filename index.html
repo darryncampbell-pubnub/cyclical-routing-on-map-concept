@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,
+		initial-scale=1, shrink-to-fit=no" />
+
+    <!--  Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+
+    <!-- Bootstrap and FontAwesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+        integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+    <script defer src="./js/fontawesome/all.js"></script>
+    <script>
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+
+    <!-- PubNub SDK -->
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
+
+    <!-- Application logic -->
+    <script src="./js/conversation.js"></script>
+    <script src="./js/simulation/simulation.js"></script>
+    <script src="./js/simulation/simulator_types.js"></script>
+    <script src="./js/theme.js"></script>
+    <script src="./js/pubnub_setup.js"></script>
+
+</head>
+
+<!-- Interactive demo hosts this content in a window 824 pixels wide -->
+
+<body id="body" onload="onload();">
+
+
+
+
+
+
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
+
+        <!-- 'Header' -->
+        <div class="container">
+            <div class="text-center">
+                <div class="alert alert-primary align-items-center mt-3" id="loadWarning" role="alert">
+                    <div class="text-center fs-4">
+                        Clearing previous vehicles. Simulating routes
+                        <div class="spinner-border float-end" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shown if no PubNub keys found in setup.js -->
+        <div class="container alert alert-danger alert-dismissible fade show" style="display:none" id="noKeysAlert"
+            role="alert">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <strong>Cannot find PubNub keys.</strong> Please specify your PubNub keys in pubnub_setup.js.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!--  Main app body -->
+        <div class="container-fluid px-2">
+            <div class="row gy-2 px-0">
+                <div class="col">
+                    <div style="height:100%;height: 500px;" id="map-canvas">.</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-4 gy-2 px-2">
+                    <div class="px-0">
+                        <div class="card text-dark mb-1" style="width:100%;">
+                            <div class="card-header text-center" id="selected-name">Routes</div>
+                            <ul class="list-group list-group-flush" id="routesList">
+                                <li class="list-group-item small" id="route-temp">Placeholder: London, UK <span style='float:right'>
+                                        <H5><a href="javascript:alert('Sending message to driver');"
+                                                style='color:black'><i class='fa-regular fa-comments'></i></a></H5>
+                                    </span></li>
+                                <li class="list-group-item small" id="route-temp">Placeholder: Bangalore, India <span
+                                        style='float:right'>
+                                        <H5><a href="javascript:alert('Sending message to driver');"
+                                                style='color:black'><i class='fa-regular fa-comments'></i></a></H5>
+                                    </span></li>
+                                <li class="list-group-item small" id="route-temp">Placeholder: Jakarta, Indonesia <span
+                                        style='float:right'>
+                                        <H5><a href="javascript:alert('Sending message to driver');"
+                                                style='color:black'><i class='fa-regular fa-comments'></i></a></H5>
+                                    </span></li>
+                                <li class="list-group-item small" id="route-temp">Placeholder: Berlin, Germany <span
+                                        style='float:right'>
+                                        <H5><a href="javascript:alert('Sending message to driver');"
+                                                style='color:black'><i class='fa-regular fa-comments'></i></a></H5>
+                                    </span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col gy-2 px-2">
+                    <div class="px-0">
+                        <div class="card text-dark bg-light mb-3" style="width:100%;">
+                            <div class="card-header text-center" id="selected-vehicle">Please Select a Vehicle</div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item small" id="selected-driver-name">Driver Name: Please select a
+                                    vehicle</li>
+                                <li class="list-group-item small" id="selected-last-delivery">Last Delivery: Please
+                                    select a vehicle</li>
+                                <li class="list-group-item small" id="selected-next-delivery">Next Delivery: Please
+                                    select a vehicle</li>
+                                <li class="list-group-item small" id="selected-location">Vehicle Status: Please select a
+                                    vehicle</li>
+                                <li class="list-group-item small" id="selected-estimated-arrival">Estimated Arrival:
+                                    Please select a vehicle</li>
+                            </ul>
+
+                            <div class="card-footer">
+                                <div class="form-check-inline" id="themePicker">Delivery Theme:&nbsp;&nbsp;&nbsp;
+                                    <input class="form-check-input" type="radio" name="deliveryTheme"
+                                        id="deliverPackages" checked>
+                                    <label class="form-check-label" for="deliverPackages">
+                                        Packages&nbsp;&nbsp;
+                                    </label>
+                                    <input class="form-check-input" type="radio" name="deliveryTheme"
+                                        id="deliverPeople">
+                                    <label class="form-check-label" for="deliverPeople">
+                                        People (Taxis)&nbsp;&nbsp;
+                                    </label>
+                                    <input class="form-check-input" type="radio" name="deliveryTheme" id="deliverFood">
+                                    <label class="form-check-label" for="deliverFood">
+                                        Food
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        </div>
+        </div>
+
+        <!-- Modal: Send Message -->
+        <div class="modal" id="sendMessageModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content p-2">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="sendMessageModalTitle">Send Message to </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3" style="display:none" id="sendMessageModalDeviceId"></div>
+                        <div class="mb-3">
+                            <label for="sendMessageModalMessage" class="form-label">Select Message to Send:</label>
+                            <select class="form-select" id="sendMessageModalMessage">
+                                <option selected>Select Message</option>
+                            </select>
+                        </div>
+                    <div class="alert alert-primary fade show" role="alert" id="sendMessageModalResponse"
+                        style="display:none">
+                        <strong>Response:</strong><br>
+                        <span id='sendMessageModalResponseTxt'></span>
+                    </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-pn-clear" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-pn" id="SendMessage"
+                            onclick="sendMessageModalSend()">Send Message</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+
+
+
+
+
+
+
+    <!-- Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+        crossorigin="anonymous"></script>
+
+    <!-- Application logic -->
+    <script src="./js/pubnub_handler.js"></script>
+    <script src="./js/table_ui.js"></script>
+    <script src="./js/map.js"></script>
+    <script>
+        //  Map
+        var jsElem = window.document.createElement('script');
+        jsElem.src = "https://maps.googleapis.com/maps/api/js?key=" + GOOGLE_MAP_KEY + "&callback=initialize";
+        jsElem.type = 'text/javascript';
+        document.getElementById('body').append(jsElem);
+
+        //  Load warning about clearing previous devices - see ReadMe for more information on persistence.
+        //  todo
+        var warningMsg = document.getElementById('loadWarning');
+        setTimeout(function () {document.getElementById('loadWarning').style.display = "none"}, 0);
+    </script>
+
+</body>
+
+</html>
